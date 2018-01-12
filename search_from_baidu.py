@@ -31,7 +31,7 @@ def open_webbrowser_count(question,choices):
         count = content[:index].replace(',', '')
         counts.append(count)
         print(choices[i] + " : " + count)
-
+        
 
 def count_base(question,choices):
     print('-- 方法3： 题目搜索结果包含选项词频计数法 --')
@@ -47,9 +47,16 @@ def count_base(question,choices):
         counts.append(content.count(choices[i]))
         print(choices[i] + " : " + str(counts[i]))
 
+        
+def process(question):
+    lis = ['下列', '以下']
+    for x in lis:
+        if x in question:
+            new_question = question.replace(x, '')
+    return new_question
 
 def get_answer():
-    resp = requests.get('http://htpmsg.jiecaojingxuan.com/msg/current',timeout=4).text
+    resp = requests.get('http://htpmsg.jiecaojingxuan.com/msg/current',timeout=3).text
     resp_dict = json.loads(resp)
     if resp_dict['msg'] == 'no data':
         return 'Waiting for question...'
@@ -57,11 +64,12 @@ def get_answer():
         resp_dict = eval(str(resp))
         question = resp_dict['data']['event']['desc']
         question = question[question.find('.') + 1:question.find('?')]
+        question = process(question)
         if question not in questions:
             questions.append(question)
             choices = eval(resp_dict['data']['event']['options'])
             open_webbrowser(question)
-            open_webbrowser_count(question, choices)
+            #open_webbrowser_count(question, choices)
             count_base(question, choices)
             time.sleep(5)
         else:
@@ -71,9 +79,16 @@ def get_answer():
 def main():
     while True:
         print(time.strftime('%H:%M:%S',time.localtime(time.time())))
-        print(get_answer())
+        try:
+            print(get_answer())
+        except Exception as e: 
+            print(e)
         time.sleep(1)
 
 
 if __name__ == '__main__':
     main()
+    #open_webbrowser("谁是赵本山大弟子？")
+    #open_webbrowser_count("谁是赵本山大弟子？", ["小沈阳", "岳云鹏", "李正春"])
+    #count_base("谁是赵本山大弟子？", ["小沈阳", "岳云鹏", "李正春"])
+    #print(process("以下谁是赵本山大弟子？"))
